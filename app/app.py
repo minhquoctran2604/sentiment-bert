@@ -1,8 +1,9 @@
 ﻿import sys
 from pathlib import Path
+from typing import Any, Dict, List
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-import streamlit as st
+import streamlit as st  # type: ignore
 from transformers import pipeline
 from src.config import Config
 
@@ -22,7 +23,7 @@ def load_classifier():
 
 # UI
 st.title("🎭 Movie Review Sentiment Analysis")
-st.markdown("**Powered by fine-tuned BERT (Domain Adaptation: SST-2 → IMDB)**")
+st.markdown("**Powered by fine-tuned BERT (3-class: Positive / Neutral / Negative)**")
 
 st.divider()
 
@@ -38,19 +39,30 @@ if st.button("🔍 Analyze Sentiment", type="primary", use_container_width=True)
     if text.strip():
         with st.spinner("Analyzing..."):
             classifier = load_classifier()
-            result = classifier(text)[0]
+            results: List[Dict[str, Any]] = classifier(text)  # type: ignore
+            result = results[0]
+            label: str = result['label']
+            score: float = result['score']
             
             # Display result
             col1, col2 = st.columns([2, 1])
             
             with col1:
-                if result['label'] == 'LABEL_1':
+                if label == 'POSITIVE':
                     st.success("### 😊 POSITIVE")
-                else:
+                elif label == 'NEGATIVE':
                     st.error("### 😞 NEGATIVE")
+                elif label == 'NEUTRAL':
+                    st.info("### 😐 NEUTRAL")
+                else:
+                    st.warning(f"### {label}")
             
             with col2:
-                st.metric("Confidence", f"{result['score']:.1%}")
+                st.metric("Confidence", f"{score:.1%}")
+            
+            # Explanation
+            if label == 'NEUTRAL':
+                st.info("ℹ️ This review has mixed or neutral sentiment.")
     else:
         st.warning("⚠️ Please enter some text first!")
 
@@ -58,16 +70,16 @@ if st.button("🔍 Analyze Sentiment", type="primary", use_container_width=True)
 with st.sidebar:
     st.header("About")
     st.markdown("""
-    This model uses **domain adaptation**:
+    This model uses **3-class sentiment**:
     
-    1. Start from SST-2 fine-tuned BERT
-    2. Adapt to IMDB user reviews
-    3. Achieve 89%+ accuracy
+    - 😊 **POSITIVE**: Very positive to positive
+    - 😐 **NEUTRAL**: Mixed/neutral feelings
+    - 😞 **NEGATIVE**: Negative to very negative
     
     **Tech Stack:**
     - Model: DistilBERT
     - Framework: Hugging Face Transformers
-    - Dataset: IMDB
+    - Dataset: SST (Stanford Sentiment Treebank)
     """)
 
 st.divider()
