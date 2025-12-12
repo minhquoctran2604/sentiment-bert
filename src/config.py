@@ -1,13 +1,14 @@
 ﻿from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict
 
 PROJECT_ROOT = Path(__file__).parent.parent
 
 @dataclass
 class ModelConfig:
-    name: str = "distilbert-base-uncased-finetuned-sst-2-english"
-    num_labels: int = 3  # 3-class: NEGATIVE, NEUTRAL, POSITIVE
+    # ===== ĐỔI: Twitter RoBERTa 3-class =====
+    name: str = "cardiffnlp/twitter-roberta-base-sentiment-latest"
+    num_labels: int = 3  
     max_length: int = 512
 
 @dataclass
@@ -31,6 +32,7 @@ class TrainingConfig:
         self.models_dir.mkdir(exist_ok=True)
         self.outputs_dir.mkdir(exist_ok=True)
     
+    # ===== ĐỔI: 3 labels =====
     @property
     def id2label(self) -> Dict[int, str]:
         return {0: "NEGATIVE", 1: "NEUTRAL", 2: "POSITIVE"}

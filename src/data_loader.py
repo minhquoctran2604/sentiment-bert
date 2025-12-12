@@ -1,38 +1,29 @@
 ﻿from datasets import load_dataset, DatasetDict
 from transformers import AutoTokenizer
 
-def load_and_prepare_data(config):    
-    print("Loading SST-5 dataset...")
-    
-    # Use SetFit/sst5 - the modern HuggingFace version of SST-5
-    # Labels: 0=very negative, 1=negative, 2=neutral, 3=positive, 4=very positive
+def load_and_prepare_data(config):
+    # ===== ĐỔI: SST5 thay vì IMDB =====
     dataset: DatasetDict = load_dataset("SetFit/sst5", cache_dir=str(config.training.data_dir))  # type: ignore
+    print(f"Train: {len(dataset['train']):,}, Validation: {len(dataset['validation']):,}")
     
-    # Map 5 labels [0,1,2,3,4] to 3 classes
+    # ===== THÊM: Map 5 → 3 classes =====
     def map_to_3_classes(example):
         label = example['label']
-        if label <= 1:      # Very negative (0), Negative (1)
-            new_label = 0   # NEGATIVE
+        if label <= 1:      # Very neg, Neg
+            example['label'] = 0
         elif label == 2:    # Neutral
-            new_label = 1   # NEUTRAL
-        else:               # Positive (3), Very positive (4)
-            new_label = 2   # POSITIVE
-        return {'label': new_label, 'text': example['text']}
+            example['label'] = 1
+        else:               # Pos, Very pos
+            example['label'] = 2
+        return example
     
     dataset = dataset.map(map_to_3_classes)
     
-    train_data = dataset['train']
-    val_data = dataset['validation']
-    
-    print(f"✓ Loaded {len(train_data):,} train samples")
-    print(f"✓ Loaded {len(val_data):,} validation samples")
-    
     tokenizer = AutoTokenizer.from_pretrained(config.model.name)
     
-    # Tokenization - SST-5 uses 'text' field
     def tokenize_function(examples):
         return tokenizer(
-            examples["text"],
+            examples["text"],  # SST5 dùng 'text'
             padding="max_length",
             truncation=True,
             max_length=config.model.max_length
@@ -40,16 +31,15 @@ def load_and_prepare_data(config):
     
     tokenized = dataset.map(tokenize_function, batched=True)
     
-    # Create subsets
-    train_dataset = tokenized["train"].shuffle(seed=config.training.seed).select(
-        range(min(config.training.train_size, len(tokenized["train"])))
-    )
+    train_dataset = tokenized["train"].shuffle(
+        seed=config.training.seed
+    ).select(range(config.training.train_size))
     
-    test_dataset = tokenized["validation"].shuffle(seed=config.training.seed).select(
-        range(min(config.training.test_size, len(tokenized["validation"])))
-    )
+    test_dataset = tokenized["validation"].shuffle(
+        seed=config.training.seed
+    ).select(range(config.training.test_size))
     
-    print(f"✓ Train subset: {len(train_dataset)}")
-    print(f"✓ Test subset: {len(test_dataset)}")
+    print(f"Train subset: {len(train_dataset)}")
+    print(f"Test subset: {len(test_dataset)}")
     
     return train_dataset, test_dataset, tokenizer

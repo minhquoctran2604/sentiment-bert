@@ -1,7 +1,4 @@
-﻿"""
-Training utilities
-"""
-from transformers import TrainingArguments, Trainer
+﻿from transformers import TrainingArguments, Trainer
 import numpy as np
 from sklearn.metrics import accuracy_score, f1_score
 
@@ -11,13 +8,13 @@ def compute_metrics(eval_pred):
     
     return {
         "accuracy": accuracy_score(labels, predictions),
-        "f1": f1_score(labels, predictions),
+        "f1": f1_score(labels, predictions, average='weighted'),
     }
 
 def create_trainer(model, train_dataset, eval_dataset, tokenizer, config):
     training_args = TrainingArguments(
         output_dir=str(config.training.outputs_dir),
-        eval_strategy="epoch",
+        evaluation_strategy="epoch",
         save_strategy="epoch",
         learning_rate=config.training.learning_rate,
         per_device_train_batch_size=config.training.batch_size,
