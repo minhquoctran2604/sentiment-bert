@@ -6,7 +6,7 @@ PROJECT_ROOT = Path(__file__).parent.parent
 
 @dataclass
 class ModelConfig:
-    # ===== ĐỔI: Twitter RoBERTa 3-class =====
+    #Twitter RoBERTa 3-class 
     name: str = "cardiffnlp/twitter-roberta-base-sentiment-latest"
     num_labels: int = 3  
     max_length: int = 512
@@ -18,9 +18,11 @@ class TrainingConfig:
     num_epochs: int = 2
     weight_decay: float = 0.01
     warmup_ratio: float = 0.1
-    
-    train_size: int = 1000
-    test_size: int = 200
+    train_size: int = 8544  
+    test_size: int = 1101   
+    num_epochs: int = 3     
+    batch_size: int = 16  
+    learning_rate: float = 2e-5  
     seed: int = 1
     
     data_dir: Path = field(default_factory=lambda: PROJECT_ROOT / "data")
@@ -32,7 +34,6 @@ class TrainingConfig:
         self.models_dir.mkdir(exist_ok=True)
         self.outputs_dir.mkdir(exist_ok=True)
     
-    # ===== ĐỔI: 3 labels =====
     @property
     def id2label(self) -> Dict[int, str]:
         return {0: "NEGATIVE", 1: "NEUTRAL", 2: "POSITIVE"}

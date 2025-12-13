@@ -2,11 +2,10 @@
 from transformers import AutoTokenizer
 
 def load_and_prepare_data(config):
-    # ===== ĐỔI: SST5 thay vì IMDB =====
     dataset: DatasetDict = load_dataset("SetFit/sst5", cache_dir=str(config.training.data_dir))  # type: ignore
     print(f"Train: {len(dataset['train']):,}, Validation: {len(dataset['validation']):,}")
     
-    # ===== THÊM: Map 5 → 3 classes =====
+    # mapping 3 classes
     def map_to_3_classes(example):
         label = example['label']
         if label <= 1:      # Very neg, Neg

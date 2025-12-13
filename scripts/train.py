@@ -1,7 +1,4 @@
-﻿"""
-Main training script for sentiment analysis
-Domain Adaptation: SST-2 → IMDB
-"""
+﻿
 import sys
 from pathlib import Path
 
@@ -14,10 +11,9 @@ from src.model import load_model
 from src.trainer import create_trainer
 
 def main():
-    """Main training function"""
     print("="*60)
     print("SENTIMENT ANALYSIS - DOMAIN ADAPTATION")
-    print("SST-2 (movie critics) → IMDB (user reviews)")
+    print("Twitter RoBERTa 3-class")
     print("="*60)
     
     # Load configuration
